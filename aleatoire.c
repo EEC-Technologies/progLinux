@@ -8,9 +8,10 @@
 void attente_aleatoire(unsigned int delais) {
 
 /* Initialisation du dÃ©sordre */
-srandom(time(NULL) % delais);
+
 
 /* Attente */
-sleep((unsigned int)(random() % ATTENTE_MAX));
+sleep((unsigned int)(rand() % ATTENTE_MAX));
 
 }
+

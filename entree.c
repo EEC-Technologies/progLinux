@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <time.h>
 
 /******************************************************************************/
 /*
@@ -37,7 +38,7 @@ else {
   	*mem=0;
   }
   else {
-  	printf("La caisse vend 4 place\n");
+  	printf("La caisse vend %d place\n", nb_place_vendu);
   	*mem=(*mem - nb_place_vendu);
   	printf("Dans la shm il y a %d places\n", *mem);
   	place_attribuee=true;
@@ -59,7 +60,7 @@ return (place_attribuee);
 /******************************************************************************/
 int main(int argc, char *argv[]) {
 
-unsigned int  delais=3;
+unsigned int  delais=7;
 
 int shmid=atoi(argv[1]);
 int semid=atoi(argv[2]);
@@ -73,9 +74,13 @@ printf("Je suis %s, shmid=%d, semid=%d\n", argv[0], shmid, semid);
 /* Attachement du segment de mémoire partagée */
 mem=attacher_segment_memoire(mem, &shmid);
 
+
+srand(time(NULL));
+    
 while (1) {
   attente_aleatoire(delais);
-  int nb_place_vendu = 4;
+	
+  int nb_place_vendu = rand() % 7;
   if (entree_voiture(mem, semid, nb_place_vendu) == false) {
   	printf("fini\n");
     break;  
