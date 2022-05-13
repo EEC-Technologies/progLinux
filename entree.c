@@ -30,7 +30,7 @@ P(semid);
 /* Reste-t-il des places libres ? */
 if (*mem == 0) {
   /* No more */
-  printf("Dans la shm il y a %d places\n", *mem);
+  //printf("Dans la shm il y a %d places\n", *mem);
 }
 else {
   /* On écrit dans la shm */
@@ -38,9 +38,9 @@ else {
   	*mem=0;
   }
   else {
-  	printf("La caisse vend %d place\n", nb_place_vendu);
+  	//printf("La caisse vend %d place\n", nb_place_vendu);
   	*mem=(*mem - nb_place_vendu);
-  	printf("Dans la shm il y a %d places\n", *mem);
+  	//printf("Dans la shm il y a %d places\n", *mem);
   	place_attribuee=true;
   }
   
@@ -81,6 +81,8 @@ while (1) {
   attente_aleatoire(delais);
 	
   int nb_place_vendu = rand() % 7;
+  printf("\rLa caisse numero 0 vend %d", nb_place_vendu);
+  fflush(stdout);
   if (entree_voiture(mem, semid, nb_place_vendu) == false) {
   	printf("fini\n");
     break;  
