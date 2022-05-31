@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <time.h>
+#include <pthread.h>
 
 /******************************************************************************/
 /*
@@ -21,12 +22,24 @@ extern int i;
 */
 /******************************************************************************/
 
-void affichage(int *mem, int semid, int nb_place_vendu) {                                       
+
+void* print_once(void* pString)
+{
+
+    sleep(5);	
+    //int* m = &pString;
+    int *myid = (int *) pString;
+    printf("%d", (int *) pString);
+
+    return NULL;
+}
+
+void affichage(int *mem) {                                       
 
 while(1){
-    printf("\rLa caisse numero 0 vend %d", *mem);
+    printf("\rIl reste %d place(s) de disponible", *mem);
     fflush(stdout);
-    sleep(5);
+    sleep(1);
     if( *mem == 0 ){
         break;
     }   
@@ -34,7 +47,95 @@ while(1){
 printf("\n");
 }
 
-void progress_bar(int *mem, int semid, int nb_place) {                                       
+void *affichage1(void *p) {       
+                 
+int *mem = (int *) p;        
+
+
+while(1){
+    printf("\rIl reste %d place(s) de disponible", *mem);
+    fflush(stdout);
+    sleep(1);
+    if( *mem == 0 ){
+        break;
+    }   
+}
+printf("\n");
+}
+
+void progress_bar(int *mem, int nb_place) {    
+
+
+printf("\t\t\t\t\t\tBARRE DE PROGRESSION EN %\n");
+char a = 124, b = 35, c=32;                                   
+printf("\t");
+for (int i = 0; i < 101; i++){
+    if(( i == 0) || (i == 100)){
+        printf("%c", a);
+    }
+    else{
+        printf("%c", c);
+    }
+}
+
+
+//system("echo -e '\e[1;32m'");
+
+printf("\r");
+printf("\t");
+//printf("\t\t\t\t");
+for (int i = 0; i < 100; i++) {
+    int valeur = ( 100 - (( *mem * 100) / nb_place ));
+    i = valeur;	
+    if( i == 0){
+        printf("%c", a);
+        fflush(stdout);
+        while(1){
+        	if( *mem != nb_place ){
+        		break;
+        	}
+        }
+    }
+    else{
+    	printf("\r");
+    	printf("\t");	
+        for (int u = 0; u < i ; u++){
+            if( u == 0){
+            	printf("%c", a);
+        	fflush(stdout);
+            }
+            else{
+            	//printf("%d",i);
+            	printf("%c", b);
+            	fflush(stdout);
+            	}
+        }
+    }
+    sleep(1);
+}
+printf("\r");
+printf("\t");
+for (int u = 0; u < 100 ; u++){
+            if(( u == 0) || (u == 100)){
+            	printf("%c", a);
+        	fflush(stdout);
+            }
+            else{
+            	//printf("%d",i);
+            	printf("%c", b);
+            	fflush(stdout);
+            	}
+        }
+//system("tput sgr0");
+printf("\n\n");
+
+}
+
+void *progress_bar1(void *p) {    
+
+int *mem = (int *) p;  
+int nb_place=100;
+char a = 124, b = 35, c=32;                                   
 
 for (int i = 0; i < 101; i++){
     if(( i == 0) || (i == 100)){
@@ -44,27 +145,48 @@ for (int i = 0; i < 101; i++){
         printf("%c", c);
     }
 }
+
+
 //system("echo -e '\e[1;32m'");
+
 printf("\r");
-printf("\t\t\t\t");
+//printf("\t\t\t\t");
 for (int i = 0; i < 100; i++) {
     int valeur = ( 100 - (( *mem * 100) / nb_place ));
-    i = valeur;
+    i = valeur;	
     if(( i == 0) || (i == 100)){
         printf("%c", a);
         fflush(stdout);
+        while(1){
+        	if( *mem != nb_place ){
+        		break;
+        	}
+        }
     }
     else{
-        for (int u = 1; u < u ; u++){
-            printf("%c", b);
-            fflush(stdout);
+    	printf("\r");
+    	int u;
+    	if(u>i){
+    		u=100;
+    	}
+        for (u = 0; u < i ; u++){
+            if( u == 0){
+            	printf("%c", a);
+        	fflush(stdout);
+            }
+            else{
+            	printf("%c", b);
+            	fflush(stdout);
+            	}
         }
     }
     sleep(1);
     }
 //system("tput sgr0");
 printf("\n\n");
-return 0;    
+
+return NULL;
+   
 }
 
 /******************************************************************************/
@@ -78,7 +200,7 @@ unsigned int  delais=7;
 
 int shmid=atoi(argv[1]);
 int semid=atoi(argv[2]);
-int nb_place=atoi(argv[3])
+int nb_place=atoi(argv[3]);
 
 int *mem;
 
@@ -89,8 +211,31 @@ printf("Je suis %s, shmid=%d, semid=%d\n", argv[0], shmid, semid);
 /* Attachement du segment de mémoire partagée */
 mem=attacher_segment_memoire(mem, &shmid);
 
-affichage(mem, semid, nb_place_vendu);
-progress_bar(mem, semid, nb_place_vendu);
+
+pthread_t thread1;
+pthread_t thread2;
+
+long t;
+
+//printf("salut : %d",*mem);
+
+
+
+//sleep(3);
+//progress_bar(mem, nb_place);
+
+//pthread_create(&thread1, NULL, affichage1, mem);
+//pthread_join(thread1, NULL);
+
+//pthread_create(&thread2, NULL, progress_bar1, mem);
+//pthread_join(thread2, NULL);
+
+
+//pthread_create(&threads, NULL, affichage1,(int *)&mem);
+
+affichage(mem);
+//sleep(1);
+//progress_bar(mem, nb_place);
 
 
 return(0);
