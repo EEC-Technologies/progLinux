@@ -80,16 +80,19 @@ printf("DEBUg : parking : shmid=%d\n", shmid);
     sprintf(semid_str, "%d", semid);
 
     int pid_caisse[nombre_caisses+1];
-    
+    char num_caisse_str[5];
     nb_proc=nombre_caisses+1;
   
   
   for(int i = 0 ;  i<nombre_caisses ; i++){
-  	
+  	//printf("pid = %d\n", getpid());
   	pid_caisse[i] = fork();
   	if ( pid_caisse[i] == 0 ){
   		printf("processus caisse\n");
-  		execl("entree", "entree", shmid_str, semid_str, nombre_places_cinema_str, i, NULL);
+  		sprintf(num_caisse_str, "%d", i);
+  		printf("caisse = %s \n", num_caisse_str);
+  		//printf("pid = %d\n", getpid());
+  		execl("entree", "entree", shmid_str, semid_str, nombre_places_cinema_str, num_caisse_str, NULL);
   		exit(0);
   	}
 		
@@ -101,12 +104,13 @@ printf("DEBUg : parking : shmid=%d\n", shmid);
   pid_caisse[nb_proc] = fork();
   if ( pid_caisse[nb_proc] == 0 ){
   		printf("processus affichage\n");
-  		int test=0;
+  		execl("affichage", "affichage", shmid_str, semid_str, nombre_places_cinema_str, NULL);
   	}
   	
   	if (pid_caisse[nb_proc] > 0) {
-  		for(int i = 0 ;  i<nb_proc ; i++){
+  		for(int i = 0 ;  i<=nb_proc ; i++){
   			waitpid(pid_caisse[i], &status,0);
   		}
+  		system("ipcrm -m `ipcs -a | grep 0x00000555 | awk '{print $2}'` -s `ipcs -a | grep 0x00000111 | awk '{print $2}'`");
   	}
 }

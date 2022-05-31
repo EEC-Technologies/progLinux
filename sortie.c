@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdbool.h>
-#include <time.h>
 
 /******************************************************************************/
 /*
@@ -13,7 +11,6 @@ extern void attente_aleatoire();
 extern int * attacher_segment_memoire();
 extern int P();
 extern int V();
-extern int i;
 
 /******************************************************************************/
 /*
@@ -21,36 +18,27 @@ extern int i;
 */
 /******************************************************************************/
 
-bool entree_voiture(int *mem, int semid, int nb_place_vendu) {                                       
-bool place_attribuee=false;
+int sortie_voiture(int *mem, int semid, int nombre_places_parking) {                                       
 
 /* On protège l'accès à la shm */
 P(semid);
 
-/* Reste-t-il des places libres ? */
-if (*mem == 0) {
-  /* No more */
-  //printf("Dans la shm il y a %d places\n", *mem);
-}
-else {
+  /* Si le nombre de places dans la shm = nombre de places du parking
+ * alors plus de voitures à faire sortir 
+ * */
+  if (*mem != nombre_places_parking) {
   /* On écrit dans la shm */
-  if (*mem - nb_place_vendu < 0){
-  	*mem=0;
+  *mem=(*mem + 1);
+  printf("\tDans la shm il y a %d places\n", *mem);
   }
-  else {
-  	//printf("La caisse vend %d place\n", nb_place_vendu);
-  	*mem=(*mem - nb_place_vendu);
-  	//printf("Dans la shm il y a %d places\n", *mem);
-  	place_attribuee=true;
-  }
-  
-}
 
 /* On protège l'accès à la shm */
 V(semid);
 
-return (place_attribuee);
+return(0);
+
 }
+
 
 
 /******************************************************************************/
@@ -60,38 +48,25 @@ return (place_attribuee);
 /******************************************************************************/
 int main(int argc, char *argv[]) {
 
-unsigned int  delais=7;
+unsigned int  delais=4;
 
 int shmid=atoi(argv[1]);
 int semid=atoi(argv[2]);
-int num_caisse=atoi(argv[4]);
+int nb_places=atoi(argv[3]);
 
 int *mem;
 
-/*
-printf("Je suis %s, shmid=%d, semid=%d\n", argv[0], shmid, semid);
-*/
 
 /* Attachement du segment de mémoire partagée */
 mem=attacher_segment_memoire(mem, &shmid);
 
-
-srand(time(NULL));
-    
 while (1) {
   attente_aleatoire(delais);
-	
-  int nb_place_vendu = rand() % 7;
-  //printf("\rLa caisse numero 0 vend %d", nb_place_vendu);
-  //fflush(stdout);
-  //printf("La caisse numero %d vend %d \n", num_caisse, nb_place_vendu);
- 
-  if (entree_voiture(mem, semid, nb_place_vendu) == false) {
-  	//printf("\n");
-  	//printf("fini\n");
-    break;  
-  }
+  printf("\tUne voiture sort\n");
+  sortie_voiture(mem, semid, nb_places);
 }
 
 return(0);
 }
+
+

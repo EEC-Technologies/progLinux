@@ -2,13 +2,16 @@
 
 OBJ  = sem_op.o shm_op.o aleatoire.o
 LINKOBJ  = $(OBJ)
-BIN  = parking entree
+BIN  = parking entree sortie
 CFLAGS = -g #-Wall
 
-all: cinema entree affichage
+all: cinema entree sortie affichage
 
 cinema: $(LINKOBJ) shm_const.h cinema.c
 	$(CC) cinema.c $(LINKOBJ) -o cinema $(CFLAGS)
+
+sortie: $(LINKOBJ) shm_const.h sortie.c
+	$(CC) sortie.c $(LINKOBJ) -o sortie $(CFLAGS)
 
 entree: $(LINKOBJ) shm_const.h entree.c
 	$(CC) entree.c $(LINKOBJ) -o entree $(CFLAGS)
@@ -32,6 +35,5 @@ affichage.o: affichage.c
 
 clean: 
 	rm -f $(OBJ) $(BIN)
-
 
 
