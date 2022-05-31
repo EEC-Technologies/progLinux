@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <time.h>
+#include <sys/time.h>
 
 /******************************************************************************/
 /*
@@ -10,6 +11,7 @@
 */
 /******************************************************************************/
 extern void attente_aleatoire();
+extern int place_aleatoire();
 extern int * attacher_segment_memoire();
 extern int P();
 extern int V();
@@ -21,35 +23,37 @@ extern int i;
 */
 /******************************************************************************/
 
-bool entree_voiture(int *mem, int semid, int nb_place_vendu) {                                       
+bool entree_voiture(int *mem, int semid, int nb_place_vendu, int num_caisse) {                                       
 bool place_attribuee=false;
 
 /* On protège l'accès à la shm */
 P(semid);
 
 /* Reste-t-il des places libres ? */
-if (*mem == 0) {
-  /* No more */
-  //printf("Dans la shm il y a %d places\n", *mem);
-}
-else {
+  if(*mem != 0){
+    if(*mem - nb_place_vendu < 0) {
+      //printf("La caisse vend %d place\n", nb_place_vendu);
+      printf("Caisse %d : pas assez de places disponibles\n", num_caisse);
+      place_attribuee=true;
+    } else {
+      if(nb_place_vendu == 0){
+        place_attribuee=true;
+      } 
+      else {
+        *mem=(*mem - nb_place_vendu);
+        place_attribuee=true;
+        printf("La caisse numero %d vend %d \n", num_caisse, nb_place_vendu);
+      }    
+    }
+  }
+
   /* On écrit dans la shm */
-  if (*mem - nb_place_vendu < 0){
-  	*mem=0;
-  }
-  else {
-  	//printf("La caisse vend %d place\n", nb_place_vendu);
-  	*mem=(*mem - nb_place_vendu);
-  	//printf("Dans la shm il y a %d places\n", *mem);
-  	place_attribuee=true;
-  }
   
-}
 
 /* On protège l'accès à la shm */
-V(semid);
+  V(semid);
 
-return (place_attribuee);
+  return (place_attribuee);
 }
 
 
@@ -60,7 +64,8 @@ return (place_attribuee);
 /******************************************************************************/
 int main(int argc, char *argv[]) {
 
-unsigned int  delais=7;
+unsigned int delais=3;
+int max_places = 7;
 
 int shmid=atoi(argv[1]);
 int semid=atoi(argv[2]);
@@ -79,14 +84,16 @@ mem=attacher_segment_memoire(mem, &shmid);
 srand(time(NULL));
     
 while (1) {
-  attente_aleatoire(delais);
-	
-  int nb_place_vendu = rand() % 7;
-  //printf("\rLa caisse numero 0 vend %d", nb_place_vendu);
-  //fflush(stdout);
-  //printf("La caisse numero %d vend %d \n", num_caisse, nb_place_vendu);
- 
-  if (entree_voiture(mem, semid, nb_place_vendu) == false) {
+
+  struct timeval interval;
+  struct timeval places;
+  gettimeofday(&interval, NULL);
+  gettimeofday(&places, NULL);
+  attente_aleatoire(&interval,delais);
+
+  int nb_place_vendu = place_aleatoire(&places,max_places);
+  
+  if (entree_voiture(mem, semid, nb_place_vendu, num_caisse) == false) {
   	//printf("\n");
   	//printf("fini\n");
     break;  

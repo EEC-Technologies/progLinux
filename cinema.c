@@ -63,17 +63,12 @@ int main(int argc, char *argv[])
     /* Création segment de mémoire partagé */
     creer_segment_memoire(CLE_SHM, &shmid);
 
-/*
-printf("DEBUg : parking : shmid=%d\n", shmid);
-*/
 
     /* Attachement du segment de mémoire partagée */
     mem=attacher_segment_memoire(mem, &shmid);
 
     /* Pas besoin de sémaphore on est seul :-) */
     *mem=nombre_places_cinema;
-
-
 
     /* Conversion des shmid et semid  (int) en chaine pour appel programme externe */
     sprintf(shmid_str, "%d", shmid);
@@ -85,13 +80,10 @@ printf("DEBUg : parking : shmid=%d\n", shmid);
   
   
   for(int i = 0 ;  i<nombre_caisses ; i++){
-  	//printf("pid = %d\n", getpid());
+  	
   	pid_caisse[i] = fork();
   	if ( pid_caisse[i] == 0 ){
-  		printf("processus caisse\n");
   		sprintf(num_caisse_str, "%d", i);
-  		printf("caisse = %s \n", num_caisse_str);
-  		//printf("pid = %d\n", getpid());
   		execl("entree", "entree", shmid_str, semid_str, nombre_places_cinema_str, num_caisse_str, NULL);
   		exit(0);
   	}
@@ -103,8 +95,7 @@ printf("DEBUg : parking : shmid=%d\n", shmid);
   
   pid_caisse[nb_proc] = fork();
   if ( pid_caisse[nb_proc] == 0 ){
-  		printf("processus affichage\n");
-  		execl("affichage", "affichage", shmid_str, semid_str, nombre_places_cinema_str, NULL);
+  		execl("affichage", "affichage", shmid_str, semid_str, nombre_places_cinema_str, titre_film,NULL);
   	}
   	
   	if (pid_caisse[nb_proc] > 0) {
