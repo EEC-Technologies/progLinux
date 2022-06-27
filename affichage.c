@@ -30,15 +30,20 @@ static int delais_affichage = 5;
 */
 /******************************************************************************/
 
-void affichage(int *mem) {                                       
+void affichage(int *mem, int semid, char* film) {                                       
 
     while(1){
-        printf("\rIl reste %d place(s) de disponible", *mem);
+
+        P(semid);
+        printf("\r\tIl reste %d place(s) de disponible pour le film %s", *mem,film);
         fflush(stdout);
-        sleep(1);
         if( *mem == 0 ){
+            V(semid);
             break;
         }   
+        V(semid);
+        sleep(delais_affichage);
+        
     }
     printf("\n");
 }
@@ -68,7 +73,7 @@ void affichage_places(int *mem, int semid, char* film) {
 void progress_bar(int *mem, int nb_place) {    
 
 
-    printf("\t\t\t\t\t\tBARRE DE PROGRESSION EN %\n");
+    printf("\t\t\t\t\t\tTAUX DE PLACES VENDUEE EN %\n");
     char a = 124, b = 35, c=32;                                   
     printf("\t");
     for (int i = 0; i < 101; i++){
@@ -152,7 +157,18 @@ int main(int argc, char *argv[]) {
     /* Attachement du segment de mémoire partagée */
     mem=attacher_segment_memoire(mem, &shmid);
 
-    affichage_places(mem,semid,film);
+    //affichage_places(mem,semid,film);
+    int status;
+    int pid_progress_bar=fork();
+    if (pid_progress_bar == 0 ){
+    	char term_cmd[128];
+    	sprintf(term_cmd," ./progress_bar %s %s %s %s;bash" , argv[1], argv[2], argv[3], argv[4]);
+  	execl("/bin/tmux", "tmux", "splitw", "-h", "\;", "send-keys", term_cmd, "Enter", NULL);
+     }
+     if (pid_progress_bar > 0) {
+     	affichage_places(mem,semid,film);
+  	waitpid(pid_progress_bar, &status,0);
+     }
     //printf("\tIl reste %d place(s) de disponible", *mem);
 
     //affichage(mem);

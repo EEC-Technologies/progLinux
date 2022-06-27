@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
     int pid_caisse[nombre_caisses+1];
     char num_caisse_str[5];
     nb_proc=nombre_caisses+1;
+    
   
   
   for(int i = 0 ;  i<nombre_caisses ; i++){
@@ -95,7 +96,13 @@ int main(int argc, char *argv[])
   
   pid_caisse[nb_proc] = fork();
   if ( pid_caisse[nb_proc] == 0 ){
-  		execl("affichage", "affichage", shmid_str, semid_str, nombre_places_cinema_str, titre_film,NULL);
+  
+  		
+  		char term_cmd[128];
+  		sprintf(term_cmd," ./affichage %s %s %s %s;bash" , shmid_str, semid_str, nombre_places_cinema_str, titre_film);
+  		execl("/bin/tmux", "tmux", "splitw", "\;", "send-keys", term_cmd, "Enter", NULL);
+  		//execl("/usr/bin/qterminal", "qterminal", "--", "bash", "-e", term_cmd, NULL);
+  		//execl("affichage", "affichage", shmid_str, semid_str, nombre_places_cinema_str, titre_film,NULL);
   	}
   	
   	if (pid_caisse[nb_proc] > 0) {
@@ -103,5 +110,6 @@ int main(int argc, char *argv[])
   			waitpid(pid_caisse[i], &status,0);
   		}
   		system("ipcrm -m `ipcs -a | grep 0x00000555 | awk '{print $2}'` -s `ipcs -a | grep 0x00000111 | awk '{print $2}'`");
+  		system("tmux kill-session");
   	}
 }

@@ -94,8 +94,6 @@ while (1) {
   int nb_place_vendu = place_aleatoire(&places,max_places);
   
   if (entree_voiture(mem, semid, nb_place_vendu, num_caisse) == false) {
-  	//printf("\n");
-  	//printf("fini\n");
     break;  
   }
 }
