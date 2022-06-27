@@ -30,45 +30,6 @@ static int delais_affichage = 5;
 */
 /******************************************************************************/
 
-void affichage(int *mem, int semid, char* film) {                                       
-
-    while(1){
-
-        P(semid);
-        printf("\r\tIl reste %d place(s) de disponible pour le film %s", *mem,film);
-        fflush(stdout);
-        if( *mem == 0 ){
-            V(semid);
-            break;
-        }   
-        V(semid);
-        sleep(delais_affichage);
-        
-    }
-    printf("\n");
-}
-
-void affichage_places(int *mem, int semid, char* film) {
-
-    
-
-    while(1){
-
-        P(semid);
-        printf("\tIl reste %d place(s) de disponible pour le film %s\n", *mem,film);
-        if( *mem == 0 ){
-            V(semid);
-            break;
-        }   
-        V(semid);
-        sleep(delais_affichage);
-        
-    }
-
-    
-
-}
-
 
 void progress_bar(int *mem, int nb_place) {    
 
@@ -159,12 +120,6 @@ int main(int argc, char *argv[]) {
 
     //affichage_places(mem,semid,film);
     char term_cmd[128];
-    //sprintf(term_cmd," ./affichage %d %d %s;bash" , mem,semid,film);
-    //execl("/bin/tmux", "tmux", "splitw", "-h", "\;", NULL);
-    //printf("\tIl reste %d place(s) de disponible", *mem);
-
-    //affichage(mem);
-    //sleep(1);
     progress_bar(mem, nb_place);
 
 
